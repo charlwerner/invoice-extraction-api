@@ -11,6 +11,7 @@ class LineItem(BaseModel):
     unit_price: Decimal
     amount: Decimal
 
+
 class Invoice(BaseModel):
     vendor_name: str
     vendor_address: str | None = None
@@ -43,5 +44,3 @@ class Invoice(BaseModel):
         elif self.subtotal + self.tax != self.total:
             raise ValueError("Subtotal plus tax does not match total")
         return self
-
-         
