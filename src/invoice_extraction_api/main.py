@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile
 
 from invoice_extraction_api.models import Invoice
+from invoice_extraction_api.pdf_text import pdf_to_text
 
 app = FastAPI()
 
@@ -16,6 +17,11 @@ async def extract(file: UploadFile) -> Invoice:
         raise HTTPException(status_code=400, detail="File is empty")
     if len(contents) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="File is too large")
+    try:
+        pdf_to_text(contents)
+    except ValueError as err:
+        raise HTTPException(status_code=400, detail="File is not a valid PDF") from err
+
     return Invoice.model_validate(
         {
             "vendor_name": "Acme Supplies Ltd",

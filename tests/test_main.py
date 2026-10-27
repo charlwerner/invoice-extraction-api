@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from invoice_extraction_api.main import MAX_FILE_SIZE, app
@@ -6,8 +8,9 @@ client = TestClient(app)
 
 
 def test_extract() -> None:
+    contents = Path("tests/fixtures/sample_invoice.pdf").read_bytes()
     response = client.post(
-        "/extract", files={"file": ("invoice.pdf", b"fake", "application/pdf")}
+        "/extract", files={"file": ("invoice.pdf", contents, "application/pdf")}
     )
     assert response.status_code == 200
     assert response.json()["vendor_name"] == "Acme Supplies Ltd"
@@ -37,3 +40,11 @@ def test_extract_size() -> None:
     )
     assert response.status_code == 413
     assert response.json()["detail"] == "File is too large"
+
+
+def test_extract_invalid_pdf() -> None:
+    response = client.post(
+        "/extract", files={"file": ("invoice.pdf", b"not a pdf", "application/pdf")}
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "File is not a valid PDF"
